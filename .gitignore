@@ -15,3 +15,5 @@ public/uploads/products/*
 certs/*.pem
 
 .env*.local
+
+.vercel
