@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
+import DataTable from '@/components/DataTable';
 import { ordersPageRows } from '@/lib/dashboard-data';
 import { getOrders } from '@/lib/server/orders-service';
 import { query } from '@/lib/db';
@@ -18,41 +19,37 @@ export default function BillPrintPage({ user, orders }) {
         title="Orders Ready To Print"
         description="Open an order to preview the two-page print set before sending it to the printer."
       >
-        <div className="table-responsive">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Payment</th>
-                <th>Total</th>
-                <th>Print</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id || order.orderNumber}>
-                  <td className="fw-semibold">{order.orderNumber}</td>
-                  <td>{order.customer}</td>
-                  <td>{order.orderDate}</td>
-                  <td>{order.status}</td>
-                  <td>{order.paymentStatus}</td>
-                  <td>{formatRupees(order.amount)}</td>
-                  <td>
-                    <Link
-                      href={`/admin/bill-print/${order.id}`}
-                      className="btn btn-sm btn-dark rounded-pill px-3"
-                    >
-                      Print 2 Pages
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={[
+            {
+              header: 'Order',
+              accessor: 'orderNumber',
+              render: (order) => <span className="fw-semibold">{order.orderNumber}</span>
+            },
+            { header: 'Customer', accessor: 'customer' },
+            { header: 'Date', accessor: 'orderDate' },
+            { header: 'Status', accessor: 'status' },
+            { header: 'Payment', accessor: 'paymentStatus' },
+            {
+              header: 'Total',
+              accessor: 'amount',
+              render: (order) => formatRupees(order.amount),
+              sortValue: (order) => Number(order.amount || 0)
+            },
+            {
+              header: 'Print',
+              sortable: false,
+              searchValue: () => '',
+              render: (order) => (
+                <Link href={`/admin/bill-print/${order.id}`} className="btn btn-sm btn-dark rounded-pill px-3">
+                  Print 2 Pages
+                </Link>
+              )
+            }
+          ]}
+          rows={orders}
+          getRowKey={(order) => order.id || order.orderNumber}
+        />
       </SectionCard>
     </Layout>
   );

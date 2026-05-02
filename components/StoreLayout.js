@@ -1,16 +1,50 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useRouter } from 'next/router';
+
+const storeCommandPages = [
+  { href: '/', label: 'Home', icon: 'HO' },
+  { href: '/store', label: 'Shop', icon: 'SH' },
+  { href: '/about', label: 'About', icon: 'AB' },
+  { href: '/contact', label: 'Contact', icon: 'CO' },
+  { href: '/faq', label: 'FAQ', icon: 'FA' },
+  { href: '/wishlist', label: 'Wishlist', icon: 'WI' },
+  { href: '/cart', label: 'Cart', icon: 'CA' },
+  { href: '/order-tracking', label: 'Track Order', icon: 'TR' },
+  { href: '/account', label: 'Account', icon: 'AC' }
+];
 
 export default function StoreLayout({ title, description, children }) {
   const { cartCount, wishlistItems } = useStore();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const filteredPages = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return storeCommandPages;
+    }
+
+    return storeCommandPages.filter((page) => page.label.toLowerCase().includes(normalizedSearch));
+  }, [searchValue]);
 
   function closeMobileMenu() {
     setMobileMenuOpen(false);
+  }
+
+  function closeSearch() {
+    setSearchOpen(false);
+    setSearchValue('');
+  }
+
+  function selectSearchPage(href) {
+    closeSearch();
+    closeMobileMenu();
+    router.push(href);
   }
 
   async function handleCustomerLogout() {
@@ -33,7 +67,16 @@ export default function StoreLayout({ title, description, children }) {
               Evalnila
             </Link>
 
+            <button type="button" className="store-search-trigger" onClick={() => setSearchOpen(true)}>
+              <span className="admin-search-mark" aria-hidden="true" />
+              <span>Search anything...</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+
             <div className="store-mobile-actions">
+              <button type="button" className="store-icon-link store-mobile-search" aria-label="Search" title="Search" onClick={() => setSearchOpen(true)}>
+                <span className="admin-search-mark" aria-hidden="true" />
+              </button>
               <Link href="/wishlist" className="store-icon-link" aria-label={`Wishlist with ${wishlistItems.length} items`} title="Wishlist" onClick={closeMobileMenu}>
                 <svg className="store-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M20.8 4.6c-2-1.8-5.1-1.5-6.8.5l-2 2.2-2-2.2c-1.7-2-4.8-2.3-6.8-.5-2.2 2-2.3 5.4-.2 7.5l9 8.5 9-8.5c2.1-2.1 2-5.5-.2-7.5Z" />
@@ -139,6 +182,66 @@ export default function StoreLayout({ title, description, children }) {
           </div>
         </footer>
       </div>
+
+      {searchOpen ? (
+        <div className="admin-command-backdrop store-command-backdrop" onMouseDown={closeSearch}>
+          <div
+            className="admin-command-menu store-command-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search storefront pages"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="admin-command-search">
+              <span className="admin-search-mark" aria-hidden="true" />
+              <input
+                type="search"
+                autoFocus
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') {
+                    closeSearch();
+                  }
+                }}
+                placeholder="Type a page or search..."
+              />
+              <button type="button" aria-label="Close search" onClick={closeSearch}>
+                x
+              </button>
+            </div>
+
+            <div className="admin-command-list">
+              <p className="admin-command-label mb-2">Pages</p>
+              {filteredPages.length ? (
+                filteredPages.map((page) => {
+                  const active =
+                    router.pathname === page.href ||
+                    (page.href !== '/' && router.pathname.startsWith(`${page.href}/`));
+
+                  return (
+                    <button
+                      type="button"
+                      key={page.href}
+                      className={`admin-command-item ${active ? 'active' : ''}`}
+                      onClick={() => selectSearchPage(page.href)}
+                    >
+                      <span className="admin-command-icon">{page.icon}</span>
+                      <span>{page.label}</span>
+                      {page.href === '/cart' && cartCount ? <span className="admin-command-badge">{cartCount}</span> : null}
+                      {page.href === '/wishlist' && wishlistItems.length ? (
+                        <span className="admin-command-badge">{wishlistItems.length}</span>
+                      ) : null}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="admin-command-empty">No matching pages.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

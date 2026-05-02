@@ -1,6 +1,7 @@
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
 import StatCard from '@/components/StatCard';
+import DataTable from '@/components/DataTable';
 import { formatRupees } from '@/lib/currency';
 import { query } from '@/lib/db';
 import { getCoupons } from '@/lib/server/coupons-service';
@@ -104,43 +105,52 @@ export default function CouponsPage({ user, coupons }) {
       </SectionCard>
 
       <SectionCard title="Coupon List" description="Manage currently configured promotional codes.">
-        <div className="table-responsive">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Discount</th>
-                <th>Minimum Order</th>
-                <th>Usage</th>
-                <th>Valid Till</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((coupon) => (
-                <tr key={coupon.id || coupon.code}>
-                  <td className="fw-semibold">{coupon.code}</td>
-                  <td>{coupon.type === 'percentage' ? `${coupon.discountValue}%` : formatRupees(coupon.discountValue)}</td>
-                  <td>{formatRupees(coupon.minimumOrderAmount)}</td>
-                  <td>{coupon.usedCount || 0}{coupon.usageLimit ? ` / ${coupon.usageLimit}` : ''}</td>
-                  <td>{coupon.endsAt || 'Open'}</td>
-                  <td>{coupon.isActive ? 'Active' : 'Paused'}</td>
-                  <td>
-                    <div className="d-flex gap-2 flex-wrap">
-                      <button className="btn btn-sm btn-outline-dark rounded-pill" type="button" onClick={() => handleToggle(coupon.id, !coupon.isActive)}>
-                        {coupon.isActive ? 'Pause' : 'Activate'}
-                      </button>
-                      <button className="btn btn-sm btn-outline-danger rounded-pill" type="button" onClick={() => handleDelete(coupon.id)}>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={[
+            {
+              header: 'Code',
+              accessor: 'code',
+              render: (coupon) => <span className="fw-semibold">{coupon.code}</span>
+            },
+            {
+              header: 'Discount',
+              accessor: (coupon) => `${coupon.type} ${coupon.discountValue}`,
+              render: (coupon) =>
+                coupon.type === 'percentage' ? `${coupon.discountValue}%` : formatRupees(coupon.discountValue),
+              sortValue: (coupon) => Number(coupon.discountValue || 0)
+            },
+            {
+              header: 'Minimum Order',
+              accessor: 'minimumOrderAmount',
+              render: (coupon) => formatRupees(coupon.minimumOrderAmount),
+              sortValue: (coupon) => Number(coupon.minimumOrderAmount || 0)
+            },
+            {
+              header: 'Usage',
+              accessor: (coupon) => `${coupon.usedCount || 0}${coupon.usageLimit ? ` / ${coupon.usageLimit}` : ''}`,
+              sortValue: (coupon) => Number(coupon.usedCount || 0)
+            },
+            { header: 'Valid Till', accessor: (coupon) => coupon.endsAt || 'Open' },
+            { header: 'Status', accessor: (coupon) => (coupon.isActive ? 'Active' : 'Paused') },
+            {
+              header: 'Action',
+              sortable: false,
+              searchValue: () => '',
+              render: (coupon) => (
+                <div className="d-flex gap-2 flex-wrap">
+                  <button className="btn btn-sm btn-outline-dark rounded-pill" type="button" onClick={() => handleToggle(coupon.id, !coupon.isActive)}>
+                    {coupon.isActive ? 'Pause' : 'Activate'}
+                  </button>
+                  <button className="btn btn-sm btn-outline-danger rounded-pill" type="button" onClick={() => handleDelete(coupon.id)}>
+                    Delete
+                  </button>
+                </div>
+              )
+            }
+          ]}
+          rows={rows}
+          getRowKey={(coupon) => coupon.id || coupon.code}
+        />
       </SectionCard>
     </Layout>
   );

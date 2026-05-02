@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
+import DataTable from '@/components/DataTable';
 import { getOrderById } from '@/lib/server/orders-service';
 import { query } from '@/lib/db';
 import { withPageAuth } from '@/lib/server/with-auth';
@@ -48,34 +49,39 @@ export default function OrderDetailPage({ user, order }) {
             title="Order Items"
             description="Line items included in this order."
           >
-            <div className="table-responsive">
-              <table className="table align-middle custom-table mb-0">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Line Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div>{item.name}</div>
-                        {item.selectedSize ? <div className="small text-muted">Size: {item.selectedSize}</div> : null}
-                        {item.itemNotes ? <div className="small text-muted">Notes: {item.itemNotes}</div> : null}
-                      </td>
-                      <td>{item.sku}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatRupees(item.unitPrice)}</td>
-                      <td>{formatRupees(item.lineTotal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={[
+                {
+                  header: 'Product',
+                  accessor: 'name',
+                  render: (item) => (
+                    <>
+                      <div>{item.name}</div>
+                      {item.selectedSize ? <div className="small text-muted">Size: {item.selectedSize}</div> : null}
+                      {item.itemNotes ? <div className="small text-muted">Notes: {item.itemNotes}</div> : null}
+                    </>
+                  ),
+                  searchValue: (item) => `${item.name || ''} ${item.selectedSize || ''} ${item.itemNotes || ''}`
+                },
+                { header: 'SKU', accessor: 'sku' },
+                { header: 'Qty', accessor: 'quantity', sortValue: (item) => Number(item.quantity || 0) },
+                {
+                  header: 'Unit Price',
+                  accessor: 'unitPrice',
+                  render: (item) => formatRupees(item.unitPrice),
+                  sortValue: (item) => Number(item.unitPrice || 0)
+                },
+                {
+                  header: 'Line Total',
+                  accessor: 'lineTotal',
+                  render: (item) => formatRupees(item.lineTotal),
+                  sortValue: (item) => Number(item.lineTotal || 0)
+                }
+              ]}
+              rows={order.items}
+              getRowKey={(item) => item.id}
+              initialPageSize={5}
+            />
           </SectionCard>
         </div>
 

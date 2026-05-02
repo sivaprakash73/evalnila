@@ -1,5 +1,6 @@
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
+import DataTable from '@/components/DataTable';
 import { customersPageRows } from '@/lib/dashboard-data';
 import { getCustomers } from '@/lib/server/customers-service';
 import { query } from '@/lib/db';
@@ -17,30 +18,23 @@ export default function CustomersPage({ user, customers }) {
         title="Customer Directory"
         description="Useful starter view for CRM and support operations."
       >
-        <div className="table-responsive">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Email</th>
-                <th>Location</th>
-                <th>Orders</th>
-                <th>Lifetime Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((row) => (
-                <tr key={row.id || row.email}>
-                  <td>{row.name}</td>
-                  <td>{row.email}</td>
-                  <td>{row.location}</td>
-                  <td>{row.orders}</td>
-                  <td>{formatRupees(row.lifetimeValue)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={[
+            { header: 'Customer', accessor: 'name' },
+            { header: 'Email', accessor: 'email' },
+            { header: 'Mobile No', accessor: (row) => row.phone || '-' },
+            { header: 'Location', accessor: 'location' },
+            { header: 'Orders', accessor: 'orders', sortValue: (row) => Number(row.orders || 0) },
+            {
+              header: 'Lifetime Value',
+              accessor: 'lifetimeValue',
+              render: (row) => formatRupees(row.lifetimeValue),
+              sortValue: (row) => Number(row.lifetimeValue || 0)
+            }
+          ]}
+          rows={customers}
+          getRowKey={(row) => row.id || row.email}
+        />
       </SectionCard>
     </Layout>
   );

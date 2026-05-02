@@ -1,5 +1,6 @@
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
+import DataTable from '@/components/DataTable';
 import { ordersPageRows } from '@/lib/dashboard-data';
 import { getOrders } from '@/lib/server/orders-service';
 import { query } from '@/lib/db';
@@ -43,46 +44,45 @@ export default function OrdersPage({ user, orders }) {
         title="All Orders"
         description="Snapshot of current orders from the store pipeline."
       >
-        <div className="table-responsive">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id || row.orderNumber}>
-                  <td>
-                    <Link href={`/admin/orders/${row.id}`} className="fw-semibold text-dark">
-                      {row.orderNumber}
-                    </Link>
-                  </td>
-                  <td>{row.customer}</td>
-                  <td>{row.orderDate}</td>
-                  <td>{row.paymentStatus}</td>
-                  <td>{row.status}</td>
-                  <td>{formatRupees(row.amount)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-dark rounded-pill"
-                      onClick={() => handleStatusChange(row.id, row)}
-                    >
-                      Advance
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={[
+            {
+              header: 'Order',
+              accessor: 'orderNumber',
+              render: (row) => (
+                <Link href={`/admin/orders/${row.id}`} className="fw-semibold text-dark">
+                  {row.orderNumber}
+                </Link>
+              )
+            },
+            { header: 'Customer', accessor: 'customer' },
+            { header: 'Date', accessor: 'orderDate' },
+            { header: 'Payment', accessor: 'paymentStatus' },
+            { header: 'Status', accessor: 'status' },
+            {
+              header: 'Amount',
+              accessor: 'amount',
+              render: (row) => formatRupees(row.amount),
+              sortValue: (row) => Number(row.amount || 0)
+            },
+            {
+              header: 'Action',
+              sortable: false,
+              searchValue: () => '',
+              render: (row) => (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-dark rounded-pill"
+                  onClick={() => handleStatusChange(row.id, row)}
+                >
+                  Advance
+                </button>
+              )
+            }
+          ]}
+          rows={rows}
+          getRowKey={(row) => row.id || row.orderNumber}
+        />
       </SectionCard>
     </Layout>
   );

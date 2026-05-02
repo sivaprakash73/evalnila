@@ -1,6 +1,7 @@
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
 import StatCard from '@/components/StatCard';
+import DataTable from '@/components/DataTable';
 import { formatRupees } from '@/lib/currency';
 import { productsPageRows } from '@/lib/dashboard-data';
 import { query } from '@/lib/db';
@@ -57,47 +58,47 @@ export default function StockPage({ user, stockRows }) {
       </div>
 
       <SectionCard title="Inventory List" description="Adjust stock counts directly from the admin table.">
-        <div className="table-responsive">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Ready Stock</th>
-                <th>Reorder Level</th>
-                <th>Stock Value</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id || row.sku}>
-                  <td>
-                    <div className="product-table-name">
-                      <div className="product-table-thumb">
-                        {row.imageUrl ? <img src={row.imageUrl} alt={row.name} /> : <span>{row.name.charAt(0)}</span>}
-                      </div>
-                      <span>{row.name}</span>
-                    </div>
-                  </td>
-                  <td>{row.sku}</td>
-                  <td>
-                    <input
-                      className="form-control stock-input"
-                      min="0"
-                      type="number"
-                      value={row.stock}
-                      onChange={(event) => handleStockChange(row.id, event.target.value)}
-                    />
-                  </td>
-                  <td>{row.reorderLevel}</td>
-                  <td>{formatRupees(row.stockValue)}</td>
-                  <td>{row.stockStatus}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={[
+            {
+              header: 'Product',
+              accessor: 'name',
+              render: (row) => (
+                <div className="product-table-name">
+                  <div className="product-table-thumb">
+                    {row.imageUrl ? <img src={row.imageUrl} alt={row.name} /> : <span>{row.name.charAt(0)}</span>}
+                  </div>
+                  <span>{row.name}</span>
+                </div>
+              )
+            },
+            { header: 'SKU', accessor: 'sku' },
+            {
+              header: 'Ready Stock',
+              accessor: 'stock',
+              sortValue: (row) => Number(row.stock || 0),
+              render: (row) => (
+                <input
+                  className="form-control stock-input"
+                  min="0"
+                  type="number"
+                  value={row.stock}
+                  onChange={(event) => handleStockChange(row.id, event.target.value)}
+                />
+              )
+            },
+            { header: 'Reorder Level', accessor: 'reorderLevel', sortValue: (row) => Number(row.reorderLevel || 0) },
+            {
+              header: 'Stock Value',
+              accessor: 'stockValue',
+              render: (row) => formatRupees(row.stockValue),
+              sortValue: (row) => Number(row.stockValue || 0)
+            },
+            { header: 'Status', accessor: 'stockStatus' }
+          ]}
+          rows={rows}
+          getRowKey={(row) => row.id || row.sku}
+        />
       </SectionCard>
     </Layout>
   );

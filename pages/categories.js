@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import SectionCard from '@/components/SectionCard';
+import DataTable from '@/components/DataTable';
 import { getCategories, slugifyCategoryName } from '@/lib/server/categories-service';
 import { query } from '@/lib/db';
 import { withPageAuth } from '@/lib/server/with-auth';
@@ -91,36 +92,36 @@ export default function CategoriesPage({ user, categories: initialCategories }) 
           </div>
         </form>
 
-        <div className="table-responsive mt-4">
-          <table className="table align-middle custom-table mb-0">
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Slug</th>
-                <th>Products</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id || category.slug}>
-                  <td>{category.name}</td>
-                  <td>{category.slug}</td>
-                  <td>{Number(category.productCount || 0)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-dark rounded-pill"
-                      disabled={!category.id || Number(category.productCount || 0) > 0}
-                      onClick={() => handleDelete(category)}
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-4">
+          <DataTable
+            columns={[
+              { header: 'Category', accessor: 'name' },
+              { header: 'Slug', accessor: 'slug' },
+              {
+                header: 'Products',
+                accessor: 'productCount',
+                render: (category) => Number(category.productCount || 0),
+                sortValue: (category) => Number(category.productCount || 0)
+              },
+              {
+                header: 'Action',
+                sortable: false,
+                searchValue: () => '',
+                render: (category) => (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-dark rounded-pill"
+                    disabled={!category.id || Number(category.productCount || 0) > 0}
+                    onClick={() => handleDelete(category)}
+                  >
+                    Remove
+                  </button>
+                )
+              }
+            ]}
+            rows={categories}
+            getRowKey={(category) => category.id || category.slug}
+          />
         </div>
 
         {message ? <div className="alert alert-success mt-4 mb-0">{message}</div> : null}
