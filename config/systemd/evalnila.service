@@ -1,0 +1,16 @@
+[Unit]
+Description=Evalnila Next.js Application
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/evalnila
+EnvironmentFile=/var/www/evalnila/.env.local
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

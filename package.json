@@ -1,0 +1,23 @@
+{
+  "name": "ecom-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:seed": "node scripts/apply-mysql-seed.js",
+    "hash:password": "node scripts/hash-password.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.3.3",
+    "bootstrap": "^5.3.3",
+    "cookie": "^1.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.3",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

@@ -1,0 +1,53 @@
+name: Deploy Evalnila Staging
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to staging over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_DEPLOY_HOST }}
+          username: ${{ secrets.STAGING_DEPLOY_USER }}
+          key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          port: ${{ secrets.STAGING_DEPLOY_PORT || 22 }}
+          script: |
+            export APP_DIR=${{ secrets.STAGING_DEPLOY_APP_DIR }}
+            export BRANCH=staging
+            cd $APP_DIR
+            bash scripts/deploy.sh
+
+      - name: Run staging health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_DEPLOY_HOST }}
+          username: ${{ secrets.STAGING_DEPLOY_USER }}
+          key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          port: ${{ secrets.STAGING_DEPLOY_PORT || 22 }}
+          script: |
+            export APP_URL=${{ secrets.STAGING_APP_URL }}
+            cd ${{ secrets.STAGING_DEPLOY_APP_DIR }}
+            bash scripts/health-check.sh

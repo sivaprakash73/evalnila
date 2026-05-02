@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ecom_dashboard
+      MYSQL_USER: evalnila
+      MYSQL_PASSWORD: evalnila123
+      JWT_SECRET: change_this_in_production
+      ADMIN_EMAIL: admin@evalnila.com
+      ADMIN_PASSWORD: admin123
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ecom_dashboard
+      MYSQL_USER: evalnila
+      MYSQL_PASSWORD: evalnila123
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./mysql/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+
+volumes:
+  mysql_data:
