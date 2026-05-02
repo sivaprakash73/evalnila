@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
-import { put } from '@vercel/blob';
 import { requireApiAuth } from '@/lib/server/with-auth';
 
 export const config = {
@@ -43,22 +42,6 @@ export default async function handler(req, res) {
 }
 
 async function saveProductImage(file, fileName) {
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(`products/${fileName}`, file.content, {
-      access: 'public',
-      addRandomSuffix: false,
-      contentType: file.contentType
-    });
-
-    return blob.url;
-  }
-
-  if (process.env.VERCEL) {
-    const error = new Error('Product image uploads need Vercel Blob storage. Add BLOB_READ_WRITE_TOKEN in Vercel project environment variables.');
-    error.statusCode = 500;
-    throw error;
-  }
-
   const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
   const uploadPath = path.join(uploadDir, fileName);
 

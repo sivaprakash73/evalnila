@@ -61,14 +61,14 @@ RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 
 Notes:
 
-- If `MYSQL_HOST` is missing, some admin/storefront pages fall back to mock data.
-- For real orders, customers, products, and Razorpay checkout, MySQL must be configured.
+- If `MYSQL_HOST` is missing, the app defaults to `localhost`.
+- For real orders, customers, products, and Razorpay checkout, local MySQL must be running.
 - `JWT_SECRET` should be a long random value in production.
 - `ADMIN_EMAIL` and `ADMIN_PASSWORD` are only fallback credentials when MySQL admin records are not being used.
 
 ## 4. Connect MySQL
 
-The database connection is defined in [lib/db.js](/D:/Ecom/lib/db.js:1).
+The database connection is defined in `lib/db.js`.
 
 The app reads:
 
@@ -86,6 +86,16 @@ MYSQL_PORT=3306
 MYSQL_DATABASE=ecom_dashboard
 MYSQL_USER=root
 MYSQL_PASSWORD=StrongPassword123
+```
+
+If `.env.local` is not present, these defaults are used:
+
+```env
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DATABASE=ecom_dashboard
+MYSQL_USER=root
+MYSQL_PASSWORD=
 ```
 
 ## 5. Create database schema and seed data
@@ -366,7 +376,7 @@ Store the generated `scrypt$...` value in `admin_users.password_hash`.
 Minimum go-live test checklist:
 
 1. Admin login works.
-2. Product list loads from MySQL, not mock data.
+2. Product list loads from local MySQL.
 3. New product creation works.
 4. Customer registration/login works.
 5. Cart and checkout work.
