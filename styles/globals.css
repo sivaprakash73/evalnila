@@ -854,8 +854,17 @@ a {
 }
 
 .size-selector {
+  align-items: flex-start;
+  flex-direction: column;
   cursor: pointer;
   padding: 0.55rem 0.9rem;
+}
+
+.size-selector small,
+.size-admin-chip small {
+  color: var(--text-soft);
+  font-size: 0.74rem;
+  font-weight: 600;
 }
 
 .size-selector input {
@@ -865,8 +874,24 @@ a {
 }
 
 .size-admin-chip {
+  align-items: center;
+  justify-content: flex-start;
   gap: 0.75rem;
   padding: 0.5rem 0.7rem 0.5rem 0.9rem;
+}
+
+.size-admin-chip label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.size-admin-chip .form-control {
+  width: 76px;
 }
 
 .size-admin-chip button {
@@ -876,6 +901,74 @@ a {
   color: var(--berry);
   font-weight: 700;
   padding: 0.35rem 0.65rem;
+}
+
+.product-size-measurements {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  color: #657369;
+  font-size: 0.9rem;
+}
+
+.product-size-measurements strong {
+  color: #142119;
+}
+
+.product-size-measurements span:not(.product-size-measurement-icon):not(:last-child)::after {
+  margin-left: 0.55rem;
+  color: rgba(20, 33, 25, 0.38);
+  content: "|";
+}
+
+.product-size-measurement-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 22px;
+  border: 1px solid rgba(20, 107, 67, 0.18);
+  border-radius: 999px;
+  color: #0f4f3a;
+  background: #eef8ed;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.product-addon-select {
+  margin-top: 1.25rem;
+}
+
+.product-addon-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.product-addon-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  color: #142119;
+  font-weight: 600;
+}
+
+.product-addon-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff2f6d;
+}
+
+.product-addon-note {
+  margin-top: 0.75rem;
+  color: #657369;
+  font-size: 0.95rem;
+}
+
+.product-addon-note strong {
+  color: #14753d;
 }
 
 .product-copy {

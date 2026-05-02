@@ -7,10 +7,11 @@ import { categoryRows, productsPageRows } from '@/lib/dashboard-data';
 import { getCategories } from '@/lib/server/categories-service';
 import { getProductById } from '@/lib/server/products-service';
 import { getSizes } from '@/lib/server/sizes-service';
+import { getAddons } from '@/lib/server/addons-service';
 import { query } from '@/lib/db';
 import { withPageAuth } from '@/lib/server/with-auth';
 
-export default function EditProductPage({ user, product, categories, sizes }) {
+export default function EditProductPage({ user, product, categories, sizes, addons }) {
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -77,6 +78,7 @@ export default function EditProductPage({ user, product, categories, sizes }) {
           initialValues={product}
           categories={categories}
           sizes={sizes}
+          addons={addons}
           onSubmit={handleSubmit}
           submitLabel="Save Changes"
         />
@@ -96,10 +98,11 @@ export default function EditProductPage({ user, product, categories, sizes }) {
 
 export const getServerSideProps = withPageAuth(async (context) => {
   const { id } = context.params;
-  const [product, categories, sizes] = await Promise.all([
+  const [product, categories, sizes, addons] = await Promise.all([
     getProductById(query, id).catch(() => productsPageRows.find((item) => String(item.id) === String(id))),
     getCategories(query).catch(() => categoryRows),
-    getSizes(query).catch(() => [])
+    getSizes(query).catch(() => []),
+    getAddons(query).catch(() => [])
   ]);
 
   if (!product) {
@@ -115,7 +118,8 @@ export const getServerSideProps = withPageAuth(async (context) => {
     props: {
       product,
       categories,
-      sizes
+      sizes,
+      addons
     }
   };
 });

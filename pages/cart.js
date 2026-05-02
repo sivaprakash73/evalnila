@@ -3,7 +3,7 @@ import StoreLayout from '@/components/StoreLayout';
 import ProductPrice from '@/components/ProductPrice';
 import { useStore } from '@/context/StoreContext';
 import { formatRupees } from '@/lib/currency';
-import { calculateCartTotals } from '@/lib/order-totals';
+import { calculateCartTotals, getItemUnitPrice } from '@/lib/order-totals';
 import { query } from '@/lib/db';
 import { getShippingSettings } from '@/lib/server/shipping-service';
 
@@ -27,7 +27,7 @@ export default function CartPage({ shippingSettings }) {
   }
 
   function getItemKey(item) {
-    return item.cartKey || `${item.id}:${item.selectedSize || ''}:${String(item.itemNotes || '').trim()}`;
+    return item.cartKey || `${item.id}:${item.selectedSize || ''}:${getSelectedAddonKey(item)}:${String(item.itemNotes || '').trim()}`;
   }
 
   function moveToWishlist(item) {
@@ -107,11 +107,12 @@ export default function CartPage({ shippingSettings }) {
                                 <div className="small text-muted">Size: {item.selectedSize}</div>
                               ) : null}
                               {item.itemNotes ? <div className="small text-muted">Notes: {item.itemNotes}</div> : null}
+                              {item.selectedAddons?.length ? <div className="small text-muted">Add-ons: {formatSelectedAddons(item)}</div> : null}
                             </div>
                           </div>
                           <div className="cart-mobile-price">
                             <ProductPrice product={item} />
-                            <strong>{formatRupees(item.price * item.quantity)}</strong>
+                            <strong>{formatRupees(getItemUnitPrice(item) * item.quantity)}</strong>
                           </div>
                           <div className="cart-mobile-actions">
                             <div className="qty-controls">
@@ -184,6 +185,7 @@ export default function CartPage({ shippingSettings }) {
                                     <div className="small text-muted">Size: {item.selectedSize}</div>
                                   ) : null}
                                   {item.itemNotes ? <div className="small text-muted">Notes: {item.itemNotes}</div> : null}
+                                  {item.selectedAddons?.length ? <div className="small text-muted">Add-ons: {formatSelectedAddons(item)}</div> : null}
                                 </div>
                               </div>
                             </td>
@@ -202,7 +204,7 @@ export default function CartPage({ shippingSettings }) {
                             <td>
                               <ProductPrice product={item} />
                             </td>
-                            <td>{formatRupees(item.price * item.quantity)}</td>
+                            <td>{formatRupees(getItemUnitPrice(item) * item.quantity)}</td>
                             <td>
                               <div className="cart-action-buttons">
                                 <button type="button" className="btn btn-sm btn-outline-dark rounded-pill" onClick={() => removeFromCart(getItemKey(item))}>
@@ -266,4 +268,14 @@ export async function getServerSideProps() {
       shippingSettings: await getShippingSettings(query)
     }
   };
+}
+
+function getSelectedAddonKey(item) {
+  return Array.isArray(item.selectedAddons)
+    ? item.selectedAddons.map((addon) => addon.id).sort((left, right) => left - right).join(',')
+    : '';
+}
+
+function formatSelectedAddons(item) {
+  return item.selectedAddons.map((addon) => `${addon.name} (+ ${formatRupees(addon.price)})`).join(', ');
 }

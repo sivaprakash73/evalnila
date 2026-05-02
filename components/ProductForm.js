@@ -12,6 +12,7 @@ export default function ProductForm({
   initialValues,
   categories,
   sizes = [],
+  addons = [],
   onSubmit,
   submitLabel
 }) {
@@ -25,6 +26,7 @@ export default function ProductForm({
     imageUrl: initialImageUrls[0] || '',
     imageUrls: initialImageUrls,
     sizes: normalizeSizeLabels(initialValues.sizes || []),
+    addons: normalizeAddonIds(initialValues.addons || []),
     mrp: initialValues.mrp ?? initialValues.price ?? '',
     specialPrice: initialValues.specialPrice ?? initialValues.special_price ?? initialValues.price ?? '',
     price: initialValues.specialPrice ?? initialValues.special_price ?? initialValues.price ?? '',
@@ -89,6 +91,19 @@ export default function ProductForm({
         sizes: selected
           ? current.sizes.filter((label) => label !== sizeLabel)
           : [...current.sizes, sizeLabel]
+      };
+    });
+  }
+
+  function toggleAddon(addonId) {
+    setForm((current) => {
+      const selected = current.addons.includes(addonId);
+
+      return {
+        ...current,
+        addons: selected
+          ? current.addons.filter((id) => id !== addonId)
+          : [...current.addons, addonId]
       };
     });
   }
@@ -377,11 +392,33 @@ export default function ProductForm({
                     onChange={() => toggleSize(size.label)}
                   />
                   <span>{size.label}</span>
+                  {getSizeMeasurementText(size) ? <small>{getSizeMeasurementText(size)}</small> : null}
                 </label>
               ))}
             </div>
           ) : (
             <p className="form-text mb-0">Create sizes from the Sizes screen before assigning them to products.</p>
+          )}
+        </div>
+
+        <div className="col-12">
+          <label className="form-label">Available Add-ons</label>
+          {addons.length ? (
+            <div className="size-selector-grid">
+              {addons.map((addon) => (
+                <label className={`size-selector ${form.addons.includes(addon.id) ? 'active' : ''}`} key={addon.id || addon.name}>
+                  <input
+                    type="checkbox"
+                    checked={form.addons.includes(addon.id)}
+                    onChange={() => toggleAddon(addon.id)}
+                  />
+                  <span>{addon.name}</span>
+                  <small>+ Rs. {Number(addon.price || 0).toFixed(2)}</small>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="form-text mb-0">Create add-ons from the Add-ons screen before assigning them to products.</p>
           )}
         </div>
 
@@ -411,4 +448,25 @@ function slugify(value) {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function getSizeMeasurementText(size) {
+  return [
+    size.bust ? `Bust ${formatMeasurement(size.bust)}in` : '',
+    size.waist ? `Waist ${formatMeasurement(size.waist)}in` : '',
+    size.hip ? `Hip ${formatMeasurement(size.hip)}in` : ''
+  ]
+    .filter(Boolean)
+    .join(' | ');
+}
+
+function formatMeasurement(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toString().replace(/\.0$/, '') : value;
+}
+
+function normalizeAddonIds(addons = []) {
+  return addons
+    .map((addon) => Number(typeof addon === 'object' ? addon.id : addon))
+    .filter((id) => Number.isInteger(id) && id > 0);
 }

@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin/products', label: 'Products' },
   { href: '/admin/products/new', label: 'Add Product' },
   { href: '/admin/categories', label: 'Categories' },
+  { href: '/admin/addons', label: 'Add-ons' },
   { href: '/admin/shipping', label: 'Shipping' },
   { href: '/admin/home-slider', label: 'Home Slider' },
   { href: '/admin/sizes', label: 'Sizes' },

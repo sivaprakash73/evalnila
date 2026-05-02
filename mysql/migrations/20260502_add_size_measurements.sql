@@ -1,0 +1,4 @@
+ALTER TABLE sizes
+  ADD COLUMN bust DECIMAL(5, 2) NULL AFTER sort_order,
+  ADD COLUMN waist DECIMAL(5, 2) NULL AFTER bust,
+  ADD COLUMN hip DECIMAL(5, 2) NULL AFTER waist;

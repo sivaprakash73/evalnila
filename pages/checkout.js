@@ -288,6 +288,7 @@ export default function CheckoutPage({ shippingSettings }) {
                         <span>
                           {item.name}
                           {item.selectedSize ? <small>Size: {item.selectedSize}</small> : null}
+                          {item.selectedAddons?.length ? <small>Add-ons: {formatSelectedAddons(item)}</small> : null}
                           {item.itemNotes ? <small>Notes: {item.itemNotes}</small> : null}
                           <small>Qty: {item.quantity}</small>
                         </span>
@@ -351,4 +352,8 @@ function loadRazorpayScript() {
     script.onerror = () => reject(new Error('Unable to load Razorpay checkout script.'));
     document.body.appendChild(script);
   });
+}
+
+function formatSelectedAddons(item) {
+  return item.selectedAddons.map((addon) => `${addon.name} (+ ${formatRupees(addon.price)})`).join(', ');
 }

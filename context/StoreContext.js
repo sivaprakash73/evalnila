@@ -93,6 +93,7 @@ export function StoreProvider({ children }) {
       const updated = {
         ...target,
         selectedSize: options.selectedSize || null,
+        selectedAddons: normalizeSelectedAddons(options.selectedAddons ?? target.selectedAddons),
         itemNotes: normalizeItemNotes(options.itemNotes || target.itemNotes) || null
       };
       const nextKey = getCartItemKey(updated);
@@ -153,6 +154,7 @@ export function StoreProvider({ children }) {
       const updated = {
         ...target,
         selectedSize: options.selectedSize || null,
+        selectedAddons: normalizeSelectedAddons(options.selectedAddons ?? target.selectedAddons),
         itemNotes: normalizeItemNotes(options.itemNotes || target.itemNotes) || null
       };
       const nextKey = getWishlistItemKey(updated);
@@ -188,7 +190,7 @@ export function StoreProvider({ children }) {
   );
 
   const cartSubtotal = useMemo(
-    () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    () => cartItems.reduce((sum, item) => sum + getItemUnitPrice(item) * item.quantity, 0),
     [cartItems]
   );
 
@@ -224,11 +226,11 @@ export function useStore() {
 }
 
 function getCartItemKey(item) {
-  return item.cartKey || `${item.id}:${item.selectedSize || ''}:${normalizeItemNotes(item.itemNotes)}`;
+  return item.cartKey || `${item.id}:${item.selectedSize || ''}:${getSelectedAddonKey(item)}:${normalizeItemNotes(item.itemNotes)}`;
 }
 
 function getWishlistItemKey(item) {
-  return item.wishlistKey || `${item.id}:${item.selectedSize || ''}:${normalizeItemNotes(item.itemNotes)}`;
+  return item.wishlistKey || `${item.id}:${item.selectedSize || ''}:${getSelectedAddonKey(item)}:${normalizeItemNotes(item.itemNotes)}`;
 }
 
 function matchesItemKey(item, productKey, getKey) {
@@ -244,4 +246,27 @@ function matchesItemKey(item, productKey, getKey) {
 
 function normalizeItemNotes(value) {
   return String(value || '').trim();
+}
+
+function normalizeSelectedAddons(addons = []) {
+  return Array.isArray(addons)
+    ? addons
+        .map((addon) => ({
+          id: Number(addon.id),
+          name: addon.name,
+          price: Number(addon.price || 0)
+        }))
+        .filter((addon) => addon.id && addon.name)
+    : [];
+}
+
+function getSelectedAddonKey(item) {
+  return normalizeSelectedAddons(item.selectedAddons)
+    .map((addon) => addon.id)
+    .sort((left, right) => left - right)
+    .join(',');
+}
+
+function getItemUnitPrice(item) {
+  return Number(item.price || 0) + normalizeSelectedAddons(item.selectedAddons).reduce((sum, addon) => sum + Number(addon.price || 0), 0);
 }

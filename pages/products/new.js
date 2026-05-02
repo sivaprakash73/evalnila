@@ -6,10 +6,11 @@ import ProductForm from '@/components/ProductForm';
 import { categoryRows } from '@/lib/dashboard-data';
 import { getCategories } from '@/lib/server/categories-service';
 import { getSizes } from '@/lib/server/sizes-service';
+import { getAddons } from '@/lib/server/addons-service';
 import { query } from '@/lib/db';
 import { withPageAuth } from '@/lib/server/with-auth';
 
-export default function NewProductPage({ user, categories, sizes }) {
+export default function NewProductPage({ user, categories, sizes, addons }) {
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -64,6 +65,7 @@ export default function NewProductPage({ user, categories, sizes }) {
           initialValues={{}}
           categories={categories}
           sizes={sizes}
+          addons={addons}
           onSubmit={handleSubmit}
           submitLabel="Create Product"
         />
@@ -76,15 +78,17 @@ export default function NewProductPage({ user, categories, sizes }) {
 }
 
 export const getServerSideProps = withPageAuth(async () => {
-  const [categories, sizes] = await Promise.all([
+  const [categories, sizes, addons] = await Promise.all([
     getCategories(query).catch(() => categoryRows),
-    getSizes(query).catch(() => [])
+    getSizes(query).catch(() => []),
+    getAddons(query).catch(() => [])
   ]);
 
   return {
     props: {
       categories,
-      sizes
+      sizes,
+      addons
     }
   };
 });

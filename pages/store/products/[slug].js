@@ -15,11 +15,22 @@ export default function StoreProductPage({ product, relatedProducts }) {
   const productImages = product.imageUrls?.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : [];
   const [activeImageUrl, setActiveImageUrl] = useState(productImages[0] || '');
   const [selectedSize, setSelectedSize] = useState('');
+  const [selectedAddons, setSelectedAddons] = useState([]);
   const [itemNotes, setItemNotes] = useState('');
   const [sizeError, setSizeError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const hasSizes = Boolean(product.sizes?.length);
+  const selectedSizeDetails = getSelectedSizeDetails(product.sizeDetails, selectedSize);
+  const selectedAddonTotal = selectedAddons.reduce((sum, addon) => sum + Number(addon.price || 0), 0);
   const normalizedItemNotes = itemNotes.trim();
+
+  function toggleAddon(addon) {
+    setSelectedAddons((current) =>
+      current.some((item) => item.id === addon.id)
+        ? current.filter((item) => item.id !== addon.id)
+        : [...current, addon]
+    );
+  }
 
   function handleAddToCart() {
     if (hasSizes && !selectedSize) {
@@ -33,6 +44,7 @@ export default function StoreProductPage({ product, relatedProducts }) {
       {
         ...product,
         selectedSize: selectedSize || null,
+        selectedAddons,
         itemNotes: normalizedItemNotes || null
       },
       1
@@ -50,6 +62,7 @@ export default function StoreProductPage({ product, relatedProducts }) {
     addToWishlist({
       ...product,
       selectedSize: selectedSize || null,
+      selectedAddons,
       itemNotes: normalizedItemNotes || null
     });
     setActionMessage(
@@ -165,6 +178,40 @@ export default function StoreProductPage({ product, relatedProducts }) {
                       </button>
                     ))}
                   </div>
+                  {selectedSizeDetails ? (
+                    <div className="product-size-measurements">
+                      <span className="product-size-measurement-icon" aria-hidden="true">Fit</span>
+                      <strong>To Fit</strong>
+                      {selectedSizeDetails.bust ? <span>Bust - {formatMeasurement(selectedSizeDetails.bust)}in</span> : null}
+                      {selectedSizeDetails.waist ? <span>Waist - {formatMeasurement(selectedSizeDetails.waist)}in</span> : null}
+                      {selectedSizeDetails.hip ? <span>Hip - {formatMeasurement(selectedSizeDetails.hip)}in</span> : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {product.addons?.length ? (
+                <div className="product-addon-select">
+                  <div className="fw-semibold mb-1">
+                    Add on (+ {formatRupees(selectedAddonTotal || product.addons[0]?.price || 0)})
+                  </div>
+                  <div className="product-addon-list">
+                    {product.addons.map((addon) => (
+                      <label className="product-addon-option" key={addon.id}>
+                        <input
+                          type="checkbox"
+                          checked={selectedAddons.some((item) => item.id === addon.id)}
+                          onChange={() => toggleAddon(addon)}
+                        />
+                        <span>{addon.name} (+ {formatRupees(addon.price)})</span>
+                      </label>
+                    ))}
+                  </div>
+                  {selectedAddonTotal ? (
+                    <p className="product-addon-note mb-0">
+                      Selections will add <strong>{formatRupees(selectedAddonTotal)}</strong> to the price
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -253,4 +300,23 @@ export async function getServerSideProps(context) {
       relatedProducts
     }
   };
+}
+
+function getSelectedSizeDetails(sizeDetails = [], selectedSize) {
+  if (!selectedSize || !Array.isArray(sizeDetails)) {
+    return null;
+  }
+
+  const details = sizeDetails.find((item) => item.label === selectedSize);
+
+  if (!details || ![details.bust, details.waist, details.hip].some(Boolean)) {
+    return null;
+  }
+
+  return details;
+}
+
+function formatMeasurement(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toString().replace(/\.0$/, '') : value;
 }
